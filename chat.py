@@ -1,27 +1,43 @@
-import gradio as gr
 from llama_cpp import Llama
+import gradio as gr 
 
-LLM = Llama(
-    model_path = "phi-2.Q5_K_M.gguf"
+MODEL_PATH = "phi-2.Q5_K_M.gguf"
+
+llm = Llama(
+    model_path=MODEL_PATH,
+    n_ctx=4096,
+    n_threads=10, # number of CPU threads to use
 )
 
-# Assuming llm is your language model function
-def llm(prompt):
-    # Your code to get the response from the model
-    response = LLM(prompt)
-    return response
+# Initialize the global variable for Llama history
+llama_history_global = [{"role": "system", "content": "You are helpful assistant"}]
 
-def get_model_response(prompt):
-    response = llm(prompt)
-    return response['choices'][0]['text'].strip()
+def gradio_reply(user_input, history):
+    global llama_history_global
+    
+    # Append the user's input to Llama history
+    llama_history_global.append({"role": "user", "content": user_input})
 
-iface = gr.Interface(
-    fn=get_model_response,
-    inputs=gr.Textbox(lines=2, placeholder="Type your message..."),
-    outputs="text",
-    title="Language Model Chat",
-    description="This is a chat interface for a language model. Type your message below and get a response.",
-    live=True  # This enables the chatbox-like interaction
-)
+    stream = llm.create_chat_completion(messages=llama_history_global, stream=True)
 
-iface.launch()
+    assistant_response = ""
+    for item in stream:
+        if 'content' in item['choices'][0]['delta']:
+            content = item['choices'][0]['delta']['content']
+            assistant_response += content
+
+    # Append the assistant's response to history for Gradio
+    history.append((user_input, assistant_response))
+   # Append the assistant's response to Llama history
+    llama_history_global.append({"role": "assistant", "content": assistant_response})
+
+    return "", history
+
+with gr.Blocks() as interface:
+    chatbot = gr.Chatbot(height=600)
+    message = gr.Textbox()
+    clear = gr.ClearButton([message, chatbot])
+    message.submit(gradio_reply, [message, chatbot], [message, chatbot])
+
+if __name__ == "__main__":
+    interface.launch()
