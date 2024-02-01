@@ -4,12 +4,11 @@ import gradio as gr
 MODEL_PATH = r"C:\Users\Aevum\Documents\Belajar\Coding\LLM\mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 
 llm = Llama(
-    model_path=MODEL_PATH,
-    n_ctx=256
-)
+    model_path=MODEL_PATH
+    )
 
 # Initialize the global variable for Llama history
-llama_history_global = [{"role": "system", "content": "You are helpful assistant"}]
+llama_history_global = []
 
 def gradio_reply(user_input, history):
     global llama_history_global
