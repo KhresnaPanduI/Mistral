@@ -16,7 +16,7 @@ def gradio_reply(user_input, history):
     global llama_history_global
     
     # Append the user's input to Llama history
-    llama_history_global.append({"role": "user", "content": user_input})
+    llama_history_global.append({"role": "user", "content": f"Instruction: {user_input}\nOutput:"})
 
     stream = llm.create_chat_completion(messages=llama_history_global, stream=True)
 
