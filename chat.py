@@ -5,7 +5,7 @@ MODEL_PATH = "phi-2.Q5_K_M.gguf"
 
 llm = Llama(
     model_path=MODEL_PATH,
-    n_ctx=4096
+    n_ctx=256
 )
 
 # Initialize the global variable for Llama history
