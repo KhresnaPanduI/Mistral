@@ -9,7 +9,7 @@ llm = Llama(
 )
 
 # Initialize the global variable for Llama history
-llama_history_global = [{"role": "system", "content": "You are helpful assistant that answer question concisely"}]
+llama_history_global = [{"role": "system", "content": "You are helpful assistant"}]
 
 def gradio_reply(user_input, history):
     global llama_history_global
@@ -17,9 +17,13 @@ def gradio_reply(user_input, history):
     # Append the user's input to Llama history
     llama_history_global.append({"role": "user", "content": user_input})
 
-    response = llm.create_chat_completion(messages=llama_history_global)
+    stream = llm.create_chat_completion(messages=llama_history_global, stream=True)
 
-    assistant_response = response['choices'][0]['message']['content']
+    assistant_response = ""
+    for item in stream:
+        if 'content' in item['choices'][0]['delta']:
+            content = item['choices'][0]['delta']['content']
+            assistant_response += content
 
     # Append the assistant's response to history for Gradio
     history.append((user_input, assistant_response))
