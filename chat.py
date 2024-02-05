@@ -1,10 +1,10 @@
 from llama_cpp import Llama
 import gradio as gr 
 
-MODEL_PATH = r"C:\Users\Aevum\Documents\Belajar\Coding\LLM\mistral-7b-instruct-v0.2.Q4_K_M.gguf"
+MODEL_PATH = r"mistral-7b-instruct-v0.2.Q4_K_M.gguf"
 
 llm = Llama(
-    model_path=r"C:\Users\Aevum\Documents\Belajar\Coding\LLM\mistral-7b-instruct-v0.2.Q4_K_M.gguf", 
+    model_path=MODEL_PATH, 
     verbose=True,
     chat_format="llama-2")  # Set chat_format according to the model you are using
 
