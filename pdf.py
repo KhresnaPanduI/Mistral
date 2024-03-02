@@ -68,7 +68,7 @@ def gradio_reply(user_input, history, pdf_file=None):
 with gr.Blocks() as interface:
     with gr.Row():
         message = gr.Textbox(label="Type your message or upload a PDF:", placeholder="Type here or upload a PDF below")
-        pdf_upload = gr.File(label="Or upload a PDF", type="pdf", clearable=True)
+        pdf_upload = gr.File(label="Or upload a PDF", type="pdf")
     chatbot = gr.Chatbot(height=600)
     submit_btn = gr.Button("Submit")
     clear = gr.ClearButton([message, chatbot, pdf_upload])
