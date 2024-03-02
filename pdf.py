@@ -1,3 +1,5 @@
+from llama_cpp import Llama
+import gradio as gr
 from PyPDF2 import PdfReader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -14,39 +16,39 @@ llm = Llama(
 llama_history_global = [{"role": "system", "content": "You are helpful assistant."}]
 
 
-def parse_pdf_to_text(pdf_file):
-    if pdf_file is not None:
-        pdf_reader = PdfReader(pdf_file)
-        
-        text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-        
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len
-        )
-        chunks = text_splitter.split_text(text=text)
-        
-        # create embeddings
-        store_name = pdf_file.name[:-4]
+def parse_pdf_and_create_embeddings(pdf_file_path):
+    pdf_reader = PdfReader(pdf_file_path)
+    text = ""
+    for page in pdf_reader.pages:
+        text += page.extract_text() or ""  # Fallback to empty string if None
 
-        if os.path.exists(f"{store_name}.pkl"):
-            with open(f"{store_name}.pkl", "rb") as f:
-                VectorStore = pickle.load(f)
-        else:
-            embeddings = OpenAIEmbeddings()
-            VectorStore = FAISS.from_texts(chunks, embedding=embeddings)
-            with open(f"{store_name}.pkl", "wb") as f:
-                pickle.dump(VectorStore, f)
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,
+        length_function=len
+    )
+    chunks = text_splitter.split_text(text=text)
+
+    store_name = os.path.basename(pdf_file_path).rsplit('.', 1)[0]  # Remove file extension
+
+    if os.path.exists(f"{store_name}.pkl"):
+        with open(f"{store_name}.pkl", "rb") as f:
+            vector_store = pickle.load(f)
+    else:
+        embeddings = OpenAIEmbeddings()
+        vector_store = FAISS.from_texts(chunks, embedding=embeddings)
+        with open(f"{store_name}.pkl", "wb") as f:
+            pickle.dump(vector_store, f)
+
+    return text  # For now, we'll just return the extracted text for integration with Gradio
 
 def gradio_reply(user_input, history, pdf_file=None):
     global llama_history_global
 
     if pdf_file is not None:
         # Save the PDF to a temporary file
-        temp_pdf_path = "/tmp/uploaded.pdf"
+        print(f"PDF file: {pdf_file}")
+        temp_pdf_path = "./uploaded.pdf"
         with open(temp_pdf_path, "wb") as temp_pdf:
             temp_pdf.write(pdf_file["content"])
         
